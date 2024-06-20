@@ -136,8 +136,6 @@ def ssh(
 
     # Create a temporary directory on the local machine
     local_temp_dir = pathlib.Path(tempfile.mkdtemp(prefix=f"probe_log_{os.getpid()}"))
-    local_probe_dir = local_temp_dir / "probe_dir"
-    local_probe_dir.mkdir()
 
     # Check if remote platform matches local platform
     remote_gcc_machine_cmd = ["ssh"] + ssh_args + ["gcc", "-dumpmachine"]
