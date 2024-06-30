@@ -117,4 +117,68 @@ def dump(
                     print(op.data)
                 print()
 
+@app.command(
+    context_settings=dict(
+        ignore_unknown_options=True,
+    ),
+)
+def ssh(
+        ssh_args: list[str],
+        debug: bool = typer.Option(default=False, help="Run verbose & debug build of libprobe"),
+):
+    """
+    Wrap SSH and record provenance of the remote command.
+    """
+    # Determine the correct library to use
+    libprobe = project_root / "libprobe/build" / ("libprobe-dbg.so" if debug else "libprobe.so")
+    if not libprobe.exists():
+        typer.secho(f"Libprobe not found at {libprobe}", fg=typer.colors.RED)
+        raise typer.Abort()
+
+    # Create a temporary directory on the local machine
+    local_temp_dir = pathlib.Path(tempfile.mkdtemp(prefix=f"probe_log_{os.getpid()}"))
+
+    # Check if remote platform matches local platform
+    remote_gcc_machine_cmd = ["ssh"] + ssh_args + ["gcc", "-dumpmachine"]
+    local_gcc_machine_cmd = ["gcc", "-dumpmachine"]
+    
+    remote_gcc_machine = subprocess.check_output(remote_gcc_machine_cmd).decode().strip()
+    local_gcc_machine = subprocess.check_output(local_gcc_machine_cmd).decode().strip()
+    
+    if remote_gcc_machine != local_gcc_machine:
+        raise NotImplementedError("Remote platform is different from local platform")
+
+    # Upload libprobe.so to the remote temporary directory
+    remote_temp_dir_cmd = ["ssh"] + ssh_args + ["mktemp", "-d", "/tmp/probe_log_XXXXXX"]
+    remote_temp_dir = subprocess.check_output(remote_temp_dir_cmd).decode().strip()
+    remote_probe_dir = f"{remote_temp_dir}/probe_dir"
+    
+    scp_cmd = ["scp", str(libprobe), f"{ssh_args[0]}:{remote_temp_dir}/"]
+    subprocess.run(scp_cmd, check=True)
+    
+    # Prepare the remote command with LD_PRELOAD and __PROBE_DIR
+    ld_preload = f"{remote_temp_dir}/{libprobe.name}"
+    remote_cmd = f"env LD_PRELOAD={ld_preload} __PROBE_DIR={remote_probe_dir} {' '.join(ssh_args[1:])}"
+    
+    if debug:
+        typer.secho(f"Running remote command: {remote_cmd}", fg=typer.colors.GREEN)
+
+    # Run the remote command
+    ssh_cmd = ["ssh"] + ssh_args + [remote_cmd]
+    proc = subprocess.run(ssh_cmd)
+
+    # Download the provenance log from the remote machine
+    remote_tar_cmd = ["ssh"] + ssh_args + [f"tar -czf - -C {remote_temp_dir} probe_dir"]
+    with open(local_temp_dir / "probe_log.tar.gz", "wb") as f:
+        subprocess.run(remote_tar_cmd, stdout=f, check=True)
+    
+    # Clean up the remote temporary directory
+    remote_cleanup_cmd = ["ssh"] + ssh_args + [f"rm -rf {remote_temp_dir}"]
+    subprocess.run(remote_cleanup_cmd, check=True)
+    
+    # Clean up the local temporary directory
+    shutil.rmtree(local_temp_dir)
+    
+    raise typer.Exit(proc.returncode)
+
 app()
