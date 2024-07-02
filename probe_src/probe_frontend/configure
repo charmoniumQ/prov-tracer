@@ -1,0 +1,7 @@
+#!/bin/sh
+
+set -e
+cd "$(dirname "$(realpath "$0")")"
+mkdir -p ./lib/include
+cp ../libprobe/include/prov_ops.h ./lib/include/prov_ops.h
+git add ./lib/include

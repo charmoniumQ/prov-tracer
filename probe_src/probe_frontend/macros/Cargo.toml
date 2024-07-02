@@ -1,0 +1,19 @@
+[package]
+name = "probe_macros"
+version.workspace = true
+authors.workspace = true
+publish.workspace = true
+edition.workspace = true
+
+[lib]
+name = "probe_macros"
+proc-macro = true
+
+[dependencies]
+# darling = "0.20.9"
+proc-macro2 = "1.0.86"
+quote = "1.0.36"
+syn = "2.0.68"
+
+[lints]
+workspace = true

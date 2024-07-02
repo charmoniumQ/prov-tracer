@@ -1,0 +1,29 @@
+[package]
+name = "probe_frontend"
+version.workspace = true
+authors.workspace = true
+publish.workspace = true
+edition.workspace = true
+
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+name = "probe_frontend"
+path = "src/lib.rs"
+
+[dependencies]
+libc = "0.2.155"
+log = "0.4.21"
+machine-info = "1.0.9"
+probe_macros = { path = "../macros" }
+rayon = "1.10.0"
+serde = { version = "1.0.203", features = ["serde_derive"] }
+serde_json = "1.0.118"
+thiserror = "1.0.61"
+
+[build-dependencies]
+bindgen = "0.69.4"
+
+[lints]
+workspace = true

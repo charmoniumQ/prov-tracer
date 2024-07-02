@@ -1,0 +1,19 @@
+[workspace]
+resolver = "2"
+members = [ 
+    "cli",
+    "lib", 
+    "macros",
+]
+
+[workspace.package]
+version = "0.2.0"
+authors = ["Jenna Fligor <jenna@fligor.net>"]
+publish = false
+edition = "2021"
+
+[workspace.lints.rust]
+unsafe_op_in_unsafe_fn = "deny"
+
+[workspace.metadata.crane]
+name = "probe"
