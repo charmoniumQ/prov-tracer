@@ -36,6 +36,8 @@ InitThreadOp: typing.TypeAlias = py_types[("struct", "InitThreadOp")]
 CloneOp: typing.TypeAlias = py_types[("struct", "CloneOp")]
 ExecOp: typing.TypeAlias = py_types[("struct", "ExecOp")]
 WaitOp: typing.TypeAlias = py_types[("struct", "WaitOp")]
+OpenOp: typing.TypeAlias = py_types[("struct", "OpenOp")]
+CloseOp: typing.TypeAlias = py_types[("struct", "CloseOp")]
 OpCode: enum.EnumType = py_types[("enum", "OpCode")]
 
 
